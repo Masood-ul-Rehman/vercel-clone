@@ -1,6 +1,7 @@
 import { S3 } from "aws-sdk";
 import fs from "fs";
 import path from "path";
+import { getAllFiles } from "./utils";
 const s3 = new S3({
   accessKeyId: process.env.accessKeyId,
   secretAccessKey: process.env.secretAccessKey,
@@ -42,4 +43,21 @@ export const downloadS3Folder = async (id: string) => {
       });
     }) || [];
   await Promise.all(allPromises?.filter((x) => x !== undefined));
+};
+export const uploadFile = async (fileName: string, localFilePath: string) => {
+  const fileContent = fs.readFileSync(localFilePath);
+  const response = await s3
+    .upload({
+      Body: fileContent,
+      Bucket: "vercel-clone",
+      Key: fileName,
+    })
+    .promise();
+};
+export const copyFinalDist = (id: string) => {
+  const folderPath = path.join(__dirname, `output/${id}/dist`);
+  const allFiles = getAllFiles(folderPath);
+  allFiles.forEach((file) => {
+    uploadFile(`dist/${id}` + file.slice(folderPath.length + 1), file);
+  });
 };
