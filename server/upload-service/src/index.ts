@@ -6,7 +6,9 @@ import path from "path";
 import { uploadFile } from "./aws";
 import { getAllFiles } from "./file";
 import { createClient } from "redis";
-const publisher = createClient();
+const publisher = createClient({
+  url: process.env.redisUrl,
+});
 publisher.connect();
 const app = express();
 app.use(cors());
@@ -24,7 +26,7 @@ app.post("/deploy", async (req, res) => {
     await uploadFile(modifiedPath, file);
   });
   await new Promise((resolve) => setTimeout(resolve, 5000));
-  publisher.lPush("build-queue", id);
+  await publisher.lPush("build-queue", id);
   res.json({
     id,
   });

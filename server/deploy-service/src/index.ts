@@ -1,9 +1,8 @@
 import { commandOptions, createClient } from "redis";
 
-const subscriber = createClient();
+const subscriber = createClient({ url: process.env.redisUrl });
 subscriber.connect();
-const publisher = createClient();
-publisher.connect();
+
 async function main() {
   while (1) {
     const res = await subscriber.brPop(
